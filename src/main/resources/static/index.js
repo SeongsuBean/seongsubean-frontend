@@ -1,6 +1,6 @@
 import {rootUrl,common,loadLayout} from '/common/common.js';
-import { menuApi } from './common/menuApi.js';
-import { cafeApi } from './common/cafeApi.js';
+// import { menuApi } from './common/menuApi.js';
+// import { cafeApi } from './common/cafeApi.js';
 
 document.addEventListener("DOMContentLoaded", () => {
   loadLayout(); // ✅ header/footer 삽입
@@ -425,7 +425,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function renderRow() {
       try {
-        const res = await axios.get(`${rootUrl}/api/main/cards?page=${currentPage}`);
+        const res = await axios.get(`${rootUrl}/api/cafes/random`);
         const cafes = res.data;
 
         if (!Array.isArray(cafes) || cafes.length === 0) {
