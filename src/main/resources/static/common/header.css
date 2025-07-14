@@ -1,0 +1,119 @@
+/* Bootstrap과 충돌 방지를 위한 더 구체적인 선택자와 !important 사용 */
+.navbar.navbar-custom,
+.navbar-custom {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #8a6534 !important;
+  font-family: 'Noto Sans KR', sans-serif !important;
+  height: 70px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 !important;
+  min-height: 70px !important;
+}
+
+.navbar-custom .header-inner {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+}
+
+/* 로고 영역 */
+.navbar-custom .header-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.8rem !important;
+  margin-right: 2rem !important;
+}
+
+.navbar-custom .logo-icon {
+  height: 60px !important;
+}
+
+.navbar-custom .logo-text {
+  height: 36px !important;
+  margin-top: 10px !important;
+}
+
+/* 메뉴 중앙 정렬 */
+.navbar-custom .header-center {
+  display: flex !important;
+  gap: 1.5rem !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  list-style: none !important;
+  margin: 10px !important;
+  padding: 0px !important;
+  flex: 1 !important;
+}
+
+.navbar-custom .nav-link {
+  color: #6b4f1d !important;
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.navbar-custom .nav-link:hover {
+  color: #8a6534 !important;
+}
+
+/* 로그인 버튼 */
+.navbar-custom .header-right {
+  display: flex !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+.navbar-custom .authenticated form {
+  display: none !important;
+  margin: 0 !important;
+}
+
+.navbar-custom .btn-login {
+  background-color: #93653B !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 1.5rem !important;
+  padding: 0.4rem 1.2rem !important;
+  font-size: 0.95rem !important;
+  text-decoration: none !important;
+  display: inline-block !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+}
+
+.navbar-custom .btn-login:hover {
+  background-color: #7a4e2c !important;
+  color: #fff !important;
+}
+
+.navbar-custom .unauthenticated {
+  display: inline-block !important;
+}
+
+/* Bootstrap navbar 기본 스타일 리셋 */
+.navbar-custom.navbar {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.navbar-custom .navbar-nav {
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-direction: row !important;
+}
+
+.navbar-custom .navbar-collapse {
+  flex-basis: auto !important;
+  flex-grow: 0 !important;
+}
+
+.navbar-custom .navbar-brand {
+  margin: 0 !important;
+  padding: 0 !important;
+}

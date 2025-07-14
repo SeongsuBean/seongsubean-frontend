@@ -1,0 +1,230 @@
+@charset "UTF-8";
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 1) 뷰포트 전체를 사용하기 위해 html/body 높이 지정 */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* common.css */
+
+.container {
+  max-width: 1200px; /* 전체 콘텐츠 최대 너비 */
+  width: 100%; /* 부모 폭을 가득 채우되, max-width 이상으로는 늘어나지 않음 */
+  margin: 0 auto; /* 좌우 중앙 정렬 */
+  padding: 0 16px; /* 좌우 여백 (모바일 대응) */
+  box-sizing: border-box;
+}
+
+/* 2) 페이지 전체를 세로 방향 Flex 컨테이너로 */
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* 뷰포트 높이만큼 확보 */
+}
+
+/* 3) 콘텐츠 영역이 푸터를 밀어내며 남은 공간 모두 차지 */
+.content-wrapper {
+  flex: 1; /* 헤더+푸터 높이를 제외한 나머지 전부 */
+  position: relative;
+}
+
+#map {
+  position: relative;
+  width: 100%;
+  max-width: 1248px;
+  height: 500px;
+  margin: 10px auto 0;
+}
+
+
+/* 검색창 (우상단) 스타일 */
+
+#searchBox {
+  position: absolute;
+  top: 5px;
+  right: 20px;
+  width: 400px;           /* 너비 늘림 */
+  height: 45px;           /* 높이 추가 */
+  display: flex;          /* 가로 정렬 */
+  align-items: center;    /* 수직 정렬 */
+  padding: 0 10px;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+#searchInput {
+  flex: 1;                 /* 남는 공간 꽉 채움 */
+  height: 35px;
+  font-size: 16px;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#searchBtn {
+  margin-left: 10px;
+  height: 35px;
+  padding: 0 15px;
+  font-size: 16px;
+  border-radius: 4px;
+}
+
+/* 카테고리 아이콘 목록 (우측) 스타일 */
+#filterIcons {
+  position: absolute;
+  top: 60px;
+  right: 10px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.filter-icon-img {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+}
+#filterIcons button {
+  padding: 6px;
+  background-color: #ffffff;
+  border: none;
+  box-shadow: none;
+}
+
+/* 왕관 아이콘 (좌상단) 스타일 */
+
+#crownBtn {
+  background-color: #ffffff !important;
+  border: none;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  border-radius: 8px;
+}
+
+#crownBtn img {
+  width: 60px;
+  height: 60px;
+}
+
+.section-title {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #4b2e1f;  /* 진한 브라운 색 */
+  text-align: left;
+  position: static;  /* 기존 absolute 제거 */
+  margin: 0;
+  margin-bottom: 20px;
+}
+/* 2) 카드 뷰 컨테이너 */
+
+#cards-wrapper {
+  display: flex;
+  flex-wrap: wrap; /* 행으로 넘기기 */
+  gap: 16px;
+  justify-content: flex-start;
+}
+
+.card-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;    /* 중요한 부분: 행 전체 너비 고정 */
+  margin-bottom: 0; /* gap 으로 간격 처리 */
+}
+
+.card {
+  width: calc((100% - 48px) / 4); /* 4개 카드 + 3개 gap */
+  min-width: 220px;
+  background: #fafafa;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.card .info {
+  padding: 8px;
+  flex: 1;
+}
+
+.card .info h4 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+}
+
+.card .info p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+#card-section {
+  position: relative;
+  width: 100%;
+  max-width: 1248px; /* 지도와 너비 맞춤 */
+  margin: 0 auto;
+  background-color: #fff;
+  padding: 10px 16px 120px 16px; /* 위는 여유 주고 아래는 더보기 공간 확보 */
+  box-sizing: border-box;
+}
+
+.card-section-header {
+  display: flex;
+  justify-content: space-between; /* 좌측과 우측 정렬 */
+  align-items: center;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+#load-more {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 1000;
+  background-color: #A55C19;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+
+#cafe-registration {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 6px 12px;
+  background: #ffffff;
+  border: 2px solid #A55C19;
+  color: #A55C19;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  z-index: 10;
+}
+
+.card:hover {
+  transform: translateY(-2px); /* 호버 시 살짝 뜨는 효과 */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2); /* 더 깊은 그림자 */
+}

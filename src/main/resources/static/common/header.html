@@ -1,0 +1,50 @@
+<header class="header-fragment">
+  <div class="header-container">
+    <nav class="navbar navbar-custom">
+      <div class="header-inner">
+        <!-- 왼쪽: 로고 -->
+        <div class="header-left">
+          <a class="navbar-brand" href="/">
+            <img src="/images/common/logo.png" alt="Seongsu Bean Logo" class="logo-icon"/>
+          </a>
+          <a class="navbar-brand" href="/">
+            <img src="/images/common/typoLogo.png" alt="Seongsu Bean Typo Logo" class="logo-text"/>
+          </a>
+        </div>
+
+
+        <!-- 가운데: 메뉴 -->
+        <ul class="navbar-nav header-center">
+          <li class="nav-item">
+            <a class="nav-link" href="/board/free-list.html">자유</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/board/report-list.html">제보</a>
+          </li>
+        </ul>
+
+        <!-- 오른쪽: 로그인 / 로그아웃 -->
+        <div class="header-right">
+          <!-- 로그인 상태 -->
+          <div class="authenticated">
+            <form action="/account/my-page.html" method="get">
+              <button type="submit" class="btn-login">마이페이지</button>
+            </form>
+            <form action="/" method="get">
+              <button type="submit" class="btn-login" id="btn-logout">로그아웃</button>
+            </form>
+          </div>
+
+          <!-- 비로그인 상태 -->
+          <div class="unauthenticated">
+            <form action="/account/login-view.html" method="get" style="display:inline;">
+              <button type="submit" class="btn-login">로그인</button>
+            </form>
+          </div>
+
+        </div>
+
+      </div>
+    </nav>
+  </div>
+</header>
