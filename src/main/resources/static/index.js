@@ -1,10 +1,12 @@
 import {rootUrl,common,loadLayout} from '/common/common.js';
+import { menuApi } from './common/menuApi.js';
+import { cafeApi } from './common/cafeApi.js';
 
 document.addEventListener("DOMContentLoaded", () => {
   loadLayout(); // ✅ header/footer 삽입
 });
 // 즉시 실행 함수로 스코프 격리
-(() => {
+(callback => {
   let retryCount = 0;
   const MAX_RETRIES = 50; // 최대 5초 대기 (100ms * 50)
 
@@ -48,6 +50,9 @@ document.addEventListener("DOMContentLoaded", () => {
       map.setMaxLevel(5);
       const geocoder = new kakao.maps.services.Geocoder();
 
+      // ✅ 현재 열린 InfoWindow를 추적하는 변수 추가
+      let currentInfoWindow = null;
+
       // 3. SeongsuBean 일러스트 및 커스텀 마커 삽입 (index.js 통합 부분)
       geocoder.addressSearch('서울특별시 성동구 성수일로 56', (result, status) => {
         if (status === kakao.maps.services.Status.OK) {
@@ -85,7 +90,18 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(res => {
           const list = res.data;
           clearMarkers();
-          list.forEach(addr => addMarkerByAddress(addr));
+          list.forEach((item) => {
+            // item이 {addr, cafeId} 형태인지 {address, cafeId} 형태인지 확인
+            if (item.addr) {
+              // 기존 형태: {addr: '주소', cafeId: 123}
+              addMarkerByAddress(item.addr, item.cafeId);
+            } else if (item.address) {
+              // 새로운 형태: {address: '주소', cafeId: 123}
+              addMarkerByAddress(item);
+            } else {
+              console.warn('알 수 없는 데이터 형태:', item);
+            }
+          });
         })
         .catch(console.error);
       }
@@ -110,14 +126,84 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 마커 전체 삭제
       function clearMarkers() {
+        // ✅ 기존 InfoWindow도 함께 닫기
+        if (currentInfoWindow) {
+          currentInfoWindow.close();
+          currentInfoWindow = null;
+        }
+
         markers.forEach(m => m.setMap(null));
         markers = [];
       }
 
-      // 3) 주소 → 위경도 변환 → 마커 생성
-      function addMarkerByAddress(address) {
-        console.log('[addMarkerByAddress] 검색:', address);
+      function showCafeInfoWindow(cafeId, marker, position) {
+        if (currentInfoWindow) currentInfoWindow.close();
+
+        cafeApi.get(`/${cafeId}`)
+        .then(async res => {
+          // ▶ 여기서 res.data 가 ResponseCafe 전체
+          const cafe = res.data;
+
+          // (이미지 로드 등 동일)
+          let imageUrl = '/images/common/default.png';
+          if (cafe.mainImage) {
+            try {
+              const imgRes = await common.get(
+                  `/api/common${cafe.mainImage}`,
+                  { responseType: 'blob' }
+              );
+              imageUrl = URL.createObjectURL(imgRes.data);
+            } catch {}
+          }
+
+          const content = `
+        <div style="padding:10px;width:250px;">
+          <img src="${imageUrl}" style="width:100%;height:120px;object-fit:cover;" alt=""/>
+          <h4>${cafe.cafeName}</h4>
+          <p>${cafe.fullAddress}</p>
+          <p>${cafe.callNumber}</p>
+          <button onclick="window.location.href='/cafe/cafe-detail.html?cafeId=${cafeId}'">
+            상세보기
+          </button>
+        </div>`;
+
+          const infoWindow = new kakao.maps.InfoWindow({ content, position });
+          infoWindow.open(map, marker);
+          currentInfoWindow = infoWindow;
+        })
+        .catch(err => console.error('카페 정보 로딩 실패', err));
+      }
+
+
+      // ✅ 수정된 addMarkerByAddress 함수 - 객체 형태 주소 데이터 처리
+      function addMarkerByAddress(addressData, cafeId = null) {
+        // addressData가 객체인지 문자열인지 확인
+        let address;
+        let actualCafeId = cafeId;
+
+        if (typeof addressData === 'object' && addressData.address) {
+          // 객체 형태: {address: '주소', cafeId: 123}
+          address = addressData.address;
+          actualCafeId = addressData.cafeId || cafeId;
+        } else if (typeof addressData === 'string') {
+          // 문자열 형태: '주소'
+          address = addressData;
+        } else {
+          console.warn('유효하지 않은 주소 데이터:', addressData);
+          return;
+        }
+
+        console.log('[addMarkerByAddress] 검색:', address, 'cafeId:', actualCafeId);
+
+        // 주소 유효성 검사
+        if (!address || address.trim() === '') {
+          console.warn('빈 주소:', address);
+          return;
+        }
+
         geocoder.addressSearch(address, (result, status) => {
+          console.log('Geocoder 결과:', status, result);
+
           if (status === kakao.maps.services.Status.OK && result[0]) {
             const {y: lat, x: lng} = result[0];
             const pos = new kakao.maps.LatLng(lat, lng);
@@ -126,46 +212,92 @@ document.addEventListener("DOMContentLoaded", () => {
               map: map,
               position: pos
             });
+
+            console.log('마커 생성 완료:', address);
+
+            // actualCafeId가 있을 때만 클릭 이벤트 추가
+            if (actualCafeId) {
+              kakao.maps.event.addListener(marker, 'click', () => {
+                showCafeInfoWindow(actualCafeId, marker, pos);
+              });
+            }
+
             markers.push(marker);
+          } else {
+            console.error('주소 검색 실패:', address, '상태:', status);
           }
         });
       }
 
-      function fetchCafeAddresses(menuName) {
-        console.log('[fetchCafeAddresses] 요청하는 메뉴:', menuName);
-        common.get(
-            `/api/search-by-menu?menuName=${encodeURIComponent(menuName)}`)
-        .then(res => {
-          const addressList = res.data;
-          console.log('[fetchCafeAddresses] 받은 데이터:', addressList);
-          if (!Array.isArray(addressList)) {
-            return;
+
+      /**
+       * 메뉴명(menuName)으로 cafeId 리스트를 받아
+       * 각 ID별 카페 상세를 조회한 뒤
+       * 주소에 마커를 찍는 함수
+       */
+      async function fetchCafeAddresses(menuName) {
+        console.log('[fetchCafeAddresses] 메뉴:', menuName);
+        // 1) 메뉴 백엔드에서 cafeId 배열 조회
+        const {data: cafeIds} = await menuApi.get(
+            '/category',
+            {params: {menuCategory: menuName}}
+        );
+
+        if (!Array.isArray(cafeIds) || cafeIds.length === 0) {
+          alert('해당 카테고리의 카페가 없습니다.');
+          return;
+        }
+        clearMarkers();
+
+        for (const id of cafeIds) {
+          try {
+            const { data: cafe } = await cafeApi.get(`/${id}`);
+            // 완전한 주소를 직접 조합
+            const fullAddr = `${cafe.cafeAddress} ${cafe.cafeDetailAddress}`;
+
+            addMarkerByAddress({
+              address: fullAddr,
+              cafeId: cafe.cafeId
+            });
+          } catch (err) {
+            console.warn(`❌ [${id}] 카페 정보 로딩 실패, 건너뜁니다.`);
           }
-          clearMarkers();
-          addressList.forEach(addr => {
-            const addrs = Array.isArray(addr) ? addr : [addr];
-            addrs.forEach(a => addMarkerByAddress(a));
-          });
-        })
-        .catch(err => console.error(err));
+        }
       }
+
+// 메뉴 아이콘에 클릭 리스너 연결
+      document
+      .querySelectorAll('#filterIcons .filter-icon-img')
+      .forEach(img => {
+        img.addEventListener('click', () => {
+          fetchCafeAddresses(img.dataset.menu);
+        });
+      });
+
+
+
+
+
 
       // ───────────────────────────────────────────────────────────────────
       /*
        * 키워드로 통합 검색 → 주소 리스트 반환 → 카카오 지오코딩 → 마커 표시
        */
+      // ✅ 수정된 searchByKeyword 함수
       function searchByKeyword(keyword) {
         console.log('[searchByKeyword] 요청 키워드:', keyword);
         axios.get(`/api/search?keyword=${encodeURIComponent(keyword)}`)
         .then(res => {
           const addressList = res.data;
+          console.log('[searchByKeyword] 받은 데이터:', addressList);
           if (!Array.isArray(addressList) || addressList.length === 0) {
             alert('검색 결과가 없습니다.');
             return;
           }
           clearMarkers();
-          addressList.forEach(addr => {
-            addMarkerByAddress(addr);
+
+          addressList.forEach(item => {
+            addMarkerByAddress(item);
           });
         })
         .catch(err => {
@@ -197,6 +329,14 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
       }
+
+      // ✅ 지도 클릭 시 InfoWindow 닫기 추가
+      kakao.maps.event.addListener(map, 'click', () => {
+        if (currentInfoWindow) {
+          currentInfoWindow.close();
+          currentInfoWindow = null;
+        }
+      });
 
       // 8. 카페 등록 버튼 클릭 시 이동
       // ✅ JWT 토큰 가져오기
@@ -230,100 +370,21 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchCafeImages(cafes) {
     return await Promise.all(cafes.map(async (cafe) => {
       if (!cafe.mainImage) {
-        return '/images/cafe/default.png'; // 기본 이미지
+        return '/images/cafe/menuDefault.png'; // 기본 이미지
       }
 
-      // const imageUrl = `/api/common${cafe.mainImage}`;
-      const imageUrl = `/images/cafe/default.png`;
+      const imageUrl = rootUrl + `/api/common${cafe.mainImage}`;
 
       try {
         const res = await axios.get(imageUrl, { responseType: 'blob' });
         return URL.createObjectURL(res.data);
       } catch (err) {
         console.warn(`이미지 불러오기 실패: ${cafe.mainImage}`, err);
-        return '/images/board/free/default.png';
+        return '/images/board/free/menuDefault.png';
       }
     }));
   }
 
-
-  function initCardView() {
-    const ROW_SIZE = 4;      // 한 줄에 보여줄 카드 수
-    let currentIndex = 0;    // 다음에 렌더링할 데이터 시작 인덱스
-    let cafes = [];          // ← 여기에 API로 받은 데이터가 들어갑니다
-
-    const wrapper = document.getElementById('cards-wrapper');
-    const btn = document.getElementById('load-more');
-
-    if (!wrapper || !btn) {
-      console.error('카드 뷰 요소를 찾을 수 없습니다.');
-      return;
-    }
-
-    // ─── 1. API 호출: cafes에 데이터 채우고 첫 줄 렌더링 ───
-    axios.get( rootUrl + '/api/cafes/random')
-    .then(async res => {
-      cafes = res.data;
-
-      // 🔽 mainImage → resolvedImageUrl 변환
-      const imageUrls = await fetchCafeImages(cafes);
-      cafes.forEach((cafe, idx) => {
-        cafe.resolvedImageUrl = imageUrls[idx];
-      });
-
-      btn.style.display = cafes.length > ROW_SIZE ? 'block' : 'none';
-      renderRow();
-    })
-    .catch(err => console.error('메인 카드 로딩 실패', err));
-
-    // 카드 한 줄(row) 렌더링 함수
-    function renderRow() {
-      if (currentIndex >= cafes.length) {
-        btn.style.display = 'none';
-        return;
-      }
-      const row = document.createElement('div');
-      row.className = 'card-row';
-
-      // ROW_SIZE 개씩 자르고 남으면 남은 개수만큼
-      const slice = cafes.slice(currentIndex, currentIndex + ROW_SIZE);
-
-      slice.forEach(cafe => {
-        const card = document.createElement('div');
-        card.className = 'card';
-
-        card.dataset.cafeId = cafe.cafeId;
-        card.innerHTML = `
-        <img src="${cafe.resolvedImageUrl}" alt="${cafe.cafeName}">
-          <div class="info">
-            <h4>${cafe.cafeName}</h4>
-              <p>${cafe.introduction || ''}</p>
-          </div>
-`;
-
-        card.addEventListener('click', () => {
-          const cafeId = card.dataset.cafeId;
-          // /cafes/{cafeId} 로 이동해서 서버 측에서 Thymeleaf 페이지(카페 상세) 렌더링하게 함
-          window.location.href = `../cafe/cafe-detail.html?cafeId=${cafeId}`;
-        });
-
-        row.appendChild(card);
-      });
-
-      wrapper.appendChild(row);
-      currentIndex += ROW_SIZE;
-
-      // 더 이상 남는 데이터 없으면 버튼 숨김
-      if (currentIndex >= cafes.length) {
-        btn.style.display = 'none';
-      }
-    }
-
-    // 더보기 버튼 클릭 이벤트
-    btn.addEventListener('click', renderRow);
-
-    // 카페 등록 버튼 클릭 시 이동 (중복 제거됨)
-  }
 
   function initKakaoMapWithRetry() {
     console.log(
@@ -350,6 +411,73 @@ document.addEventListener("DOMContentLoaded", () => {
     // 100ms 후 다시 시도
     setTimeout(initKakaoMapWithRetry, 100);
   }
+
+
+  function initCardView() {
+    const wrapper = document.getElementById('cards-wrapper');
+    const btn = document.getElementById('load-more');
+    let currentPage = 1;
+
+    if (!wrapper || !btn) {
+      console.error('카드 뷰 요소를 찾을 수 없습니다.');
+      return;
+    }
+
+    async function renderRow() {
+      try {
+        const res = await axios.get(`${rootUrl}/api/main/cards?page=${currentPage}`);
+        const cafes = res.data;
+
+        if (!Array.isArray(cafes) || cafes.length === 0) {
+          btn.style.display = 'none';
+          return;
+        }
+
+        const imageUrls = await fetchCafeImages(cafes);
+        cafes.forEach((cafe, idx) => {
+          cafe.resolvedImageUrl = imageUrls[idx];
+        });
+
+        const row = document.createElement('div');
+        row.className = 'card-row';
+
+        cafes.forEach(cafe => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.dataset.cafeId = cafe.cafeId;
+          card.innerHTML = `
+          <img src="${cafe.resolvedImageUrl}" alt="${cafe.cafeName}">
+          <div class="info">
+            <h4>${cafe.cafeName}</h4>
+            <p>${cafe.introduction || ''}</p>
+          </div>
+        `;
+
+          card.addEventListener('click', () => {
+            window.location.href = `../cafe/cafe-detail.html?cafeId=${cafe.cafeId}`;
+          });
+
+          row.appendChild(card);
+        });
+
+        wrapper.appendChild(row);
+
+        if (cafes.length < 4) {
+          btn.style.display = 'none';
+        }
+
+        currentPage += 1;
+
+      } catch (err) {
+        console.error('카페 카드 로딩 실패:', err);
+        btn.style.display = 'none';
+      }
+    }
+
+    renderRow();
+    btn.addEventListener('click', renderRow);
+  }
+
 
   // DOMContentLoaded 이벤트에서 초기화 시작
   function init() {
