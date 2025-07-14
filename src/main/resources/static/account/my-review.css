@@ -1,0 +1,73 @@
+body {
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+}
+
+.main-content {
+  padding: 3rem 0;
+  min-height: calc(100vh - 100px);
+}
+
+.page-title {
+  color: #4A4A4A;
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #8B4513;
+  padding-bottom: 0.5rem;
+  display: inline-block;
+}
+
+.reviews-table {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table thead th {
+  background-color: #8B4513;
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 1rem;
+  text-align: center;
+}
+
+.table tbody td {
+  padding: 1rem;
+  border-color: #e0e0e0;
+  color: #4A4A4A;
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.pagination-container {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.page-link {
+  color: #000000;
+  border-color: #8B4513;
+}
+
+.page-link:hover {
+  background-color: #c78364;
+  border-color: #8B4513;
+  color: white;
+}
+
+.page-item.active .page-link {
+  background-color: #c08a65;
+  border-color: #8B4513;
+}

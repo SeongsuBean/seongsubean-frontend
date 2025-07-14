@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Seongsu Bean - 로그인</title>
+    <link rel="stylesheet" href="login-view.css">
+</head>
+<body>
+
+<div class="login-wrapper">
+    <div class="outer-box">
+        <div class="login-box">
+            <img src="/images/common/logo.png" alt="Seongsu Bean Logo" class="logo">
+            <h2>LOGIN</h2>
+            <!-- 로그인 form 없이 JS로 처리 -->
+            <div class="login-form">
+                <input type="email" id="email" placeholder="이메일" required>
+                <input type="password" id="password" placeholder="비밀번호" required>
+                <div id="login-error" class="form-error" style="display: none;">
+                    이메일 또는 비밀번호가 틀렸습니다.
+                </div>
+                <button id="login-btn" class="btn btn-login">로그인</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- 회원가입 이동 -->
+            <a href="join-view.html" class="btn btn-signup">회원가입</a>
+
+            <!-- SNS 로그인 -->
+            <div class="sns-section">
+                <div class="sns-divider">
+                    <div class="line"></div>
+                    <span>SNS LOGIN</span>
+                    <div class="line"></div>
+                </div>
+                <div class="sns-icons">
+                    <button class="social-login-btn">
+                        <img src="/images/common/googlelogo.png" alt="Google Login" id="google-login-btn">
+                    </button>
+                    <button class="social-login-btn">
+                        <img src="/images/common/kakaologo.png" alt="Kakao Login" id="kakao-login-btn">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">©Designed by SeongsuBean</div>
+</div>
+
+<script type="module" src="login-view.js"></script>
+</body>
+</html>
